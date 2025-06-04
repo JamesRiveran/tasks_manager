@@ -4,12 +4,20 @@ import 'dart:async';
 
 import 'providers/task_provider.dart';
 import 'providers/theme_provider.dart' as tp;
-import 'screens/main_screen.dart';
+import 'screens/login_screen.dart';
 import 'theme/app_theme.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:path/path.dart' as path;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await deleteDatabaseManually(); //eliminar
   runApp(const MyApp());
+}
+
+Future<void> deleteDatabaseManually() async {
+  final dbPath = path.join(await getDatabasesPath(), "tasks_database.db");
+  await deleteDatabase(dbPath);
 }
 
 class MyApp extends StatefulWidget {
@@ -25,11 +33,16 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    _themeTimer = Timer.periodic(const Duration(minutes: 1), (timer) {
-      if (mounted) {
-        final themeProvider = Provider.of<tp.ThemeProvider>(context, listen: false);
-        themeProvider.checkTimeBasedTheme();
-      }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final themeProvider = Provider.of<tp.ThemeProvider>(context, listen: false);
+      themeProvider.checkTimeBasedTheme();
+
+      _themeTimer = Timer.periodic(const Duration(minutes: 1), (_) {
+        if (mounted) {
+          themeProvider.checkTimeBasedTheme();
+        }
+      });
     });
   }
 
@@ -43,8 +56,8 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (context) => TaskProvider()),
-        ChangeNotifierProvider(create: (context) => tp.ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => TaskProvider()),
+        ChangeNotifierProvider(create: (_) => tp.ThemeProvider()),
       ],
       child: Consumer<tp.ThemeProvider>(
         builder: (context, themeProvider, _) {
@@ -54,7 +67,7 @@ class _MyAppState extends State<MyApp> {
             theme: AppTheme.lightTheme(),
             darkTheme: AppTheme.darkTheme(),
             themeMode: themeProvider.isDark ? ThemeMode.dark : ThemeMode.light,
-            home: const MainScreen(),
+            home: const LoginScreen(),
           );
         },
       ),

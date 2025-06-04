@@ -2,6 +2,7 @@ class Task {
   final String id;
   final String title;
   final String description;
+  final String userId;
   bool isCompleted;
 
   Task({
@@ -9,6 +10,7 @@ class Task {
     required this.title,
     required this.description,
     this.isCompleted = false,
+    required this.userId,
   });
 
   Task copyWith({
@@ -16,12 +18,14 @@ class Task {
     String? title,
     String? description,
     bool? isCompleted,
+    String? userId,
   }) {
     return Task(
       id: id ?? this.id,
       title: title ?? this.title,
       description: description ?? this.description,
       isCompleted: isCompleted ?? this.isCompleted,
+      userId: userId ?? this.userId,
     );
   }
 
@@ -31,6 +35,7 @@ class Task {
       'title': title,
       'description': description,
       'isCompleted': isCompleted ? 1 : 0,
+      'userId': userId,
     };
   }
 
@@ -40,6 +45,7 @@ class Task {
       title: map['title'],
       description: map['description'],
       isCompleted: map['isCompleted'] == 1,
+      userId: map['userId'],
     );
   }
 }
