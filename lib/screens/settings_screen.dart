@@ -14,104 +14,80 @@ class SettingsScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Ajustes'),
         centerTitle: true,
-        elevation: 2,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Tema',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: colorScheme.primary,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    RadioListTile<app_theme.ThemeMode>(
-                      title: const Text('Tema Claro'),
-                      value: app_theme.ThemeMode.light,
-                      groupValue: themeProvider.themeMode,
-                      onChanged: (app_theme.ThemeMode? value) {
-                        if (value != null) {
-                          themeProvider.setThemeMode(value);
-                        }
-                      },
-                      secondary: const Icon(Icons.light_mode),
-                    ),
-                    RadioListTile<app_theme.ThemeMode>(
-                      title: const Text('Tema Oscuro'),
-                      value: app_theme.ThemeMode.dark,
-                      groupValue: themeProvider.themeMode,
-                      onChanged: (app_theme.ThemeMode? value) {
-                        if (value != null) {
-                          themeProvider.setThemeMode(value);
-                        }
-                      },
-                      secondary: const Icon(Icons.dark_mode),
-                    ),
-                    RadioListTile<app_theme.ThemeMode>(
-                      title: const Text('Automático (según la hora)'),
-                      subtitle: const Text('Oscuro de 6 PM a 6 AM'),
-                      value: app_theme.ThemeMode.auto,
-                      groupValue: themeProvider.themeMode,
-                      onChanged: (app_theme.ThemeMode? value) {
-                        if (value != null) {
-                          themeProvider.setThemeMode(value);
-                        }
-                      },
-                      secondary: const Icon(Icons.access_time),
-                    ),
-                  ],
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          Text(
+            'Preferencias',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: colorScheme.primary,
+                  fontWeight: FontWeight.bold,
                 ),
+          ),
+          const SizedBox(height: 12),
+          Card(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            elevation: 1,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                children: [
+                  RadioListTile<app_theme.ThemeMode>(
+                    value: app_theme.ThemeMode.light,
+                    groupValue: themeProvider.themeMode,
+                    onChanged: (value) => themeProvider.setThemeMode(value!),
+                    title: const Text('Tema Claro'),
+                    secondary: const Icon(Icons.light_mode),
+                  ),
+                  RadioListTile<app_theme.ThemeMode>(
+                    value: app_theme.ThemeMode.dark,
+                    groupValue: themeProvider.themeMode,
+                    onChanged: (value) => themeProvider.setThemeMode(value!),
+                    title: const Text('Tema Oscuro'),
+                    secondary: const Icon(Icons.dark_mode),
+                  ),
+                  RadioListTile<app_theme.ThemeMode>(
+                    value: app_theme.ThemeMode.auto,
+                    groupValue: themeProvider.themeMode,
+                    onChanged: (value) => themeProvider.setThemeMode(value!),
+                    title: const Text('Automático (según la hora)'),
+                    subtitle: const Text('Oscuro de 6 PM a 6 AM'),
+                    secondary: const Icon(Icons.access_time),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 24),
-            Text(
-              'Información',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: colorScheme.primary,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    ListTile(
-                      title: const Text('Versión'),
-                      subtitle: const Text('1.0.0'),
-                      leading: Icon(Icons.info, color: colorScheme.primary),
-                    ),
-                    ListTile(
-                      title: const Text('Desarrollado con Flutter'),
-                      subtitle: const Text('Material Design 3'),
-                      leading: Icon(Icons.code, color: colorScheme.primary),
-                    ),
-                  ],
+          ),
+          const SizedBox(height: 24),
+          Text(
+            'Información',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: colorScheme.primary,
+                  fontWeight: FontWeight.bold,
                 ),
-              ),
+          ),
+          const SizedBox(height: 12),
+          Card(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            elevation: 1,
+            child: Column(
+              children: [
+                ListTile(
+                  leading: Icon(Icons.info_outline, color: colorScheme.primary),
+                  title: const Text('Versión'),
+                  subtitle: const Text('1.0.0'),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: Icon(Icons.flutter_dash, color: colorScheme.primary),
+                  title: const Text('Desarrollado con Flutter'),
+                  subtitle: const Text('Material Design 3'),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

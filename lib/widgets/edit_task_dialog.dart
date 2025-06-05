@@ -6,10 +6,7 @@ import '../providers/task_provider.dart';
 class EditTaskDialog extends StatefulWidget {
   final Task task;
 
-  const EditTaskDialog({
-    super.key,
-    required this.task,
-  });
+  const EditTaskDialog({super.key, required this.task});
 
   @override
   State<EditTaskDialog> createState() => _EditTaskDialogState();
@@ -34,77 +31,77 @@ class _EditTaskDialogState extends State<EditTaskDialog> {
     super.dispose();
   }
 
+  void _saveChanges() {
+    if (_formKey.currentState!.validate()) {
+      final provider = Provider.of<TaskProvider>(context, listen: false);
+      provider.editTask(
+        widget.task.id,
+        _titleController.text.trim(),
+        _descriptionController.text.trim().isEmpty
+            ? 'Sin descripción'
+            : _descriptionController.text.trim(),
+      );
+      Navigator.pop(context);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: Text(
         'Editar Tarea',
-        style: TextStyle(
-          color: colorScheme.primary,
-          fontWeight: FontWeight.bold,
-        ),
+        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: colorScheme.primary,
+            ),
       ),
       content: Form(
         key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextFormField(
-              controller: _titleController,
-              decoration: const InputDecoration(
-                labelText: 'Título',
-                hintText: 'Ingresa el título de la tarea',
-                prefixIcon: Icon(Icons.title),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: _titleController,
+                decoration: const InputDecoration(
+                  labelText: 'Título',
+                  hintText: 'Actualiza el título',
+                  prefixIcon: Icon(Icons.title),
+                ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'El título es obligatorio';
+                  }
+                  return null;
+                },
               ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Por favor ingresa un título';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _descriptionController,
-              decoration: const InputDecoration(
-                labelText: 'Descripción',
-                hintText: 'Describe la tarea (opcional)',
-                prefixIcon: Icon(Icons.description),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _descriptionController,
+                maxLines: 3,
+                decoration: const InputDecoration(
+                  labelText: 'Descripción',
+                  hintText: 'Opcional: detalles de la tarea',
+                  prefixIcon: Icon(Icons.description),
+                ),
               ),
-              maxLines: 3,
-            ),
-          ],
+            ],
+          ),
         ),
       ),
       actions: [
         TextButton(
+          onPressed: () => Navigator.pop(context),
           style: TextButton.styleFrom(
             foregroundColor: colorScheme.error,
           ),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
           child: const Text('Cancelar'),
         ),
         FilledButton(
-          style: FilledButton.styleFrom(
-            backgroundColor: colorScheme.primary,
-            foregroundColor: colorScheme.onPrimary,
-          ),
-          onPressed: () {
-            if (_formKey.currentState!.validate()) {
-              Provider.of<TaskProvider>(context, listen: false).editTask(
-                widget.task.id,
-                _titleController.text,
-                _descriptionController.text.isEmpty
-                    ? 'Sin descripción'
-                    : _descriptionController.text,
-              );
-              Navigator.of(context).pop();
-            }
-          },
+          onPressed: _saveChanges,
           child: const Text('Guardar'),
         ),
       ],

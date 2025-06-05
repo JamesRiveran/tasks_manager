@@ -14,21 +14,31 @@ class MainScreen extends StatefulWidget {
   State<MainScreen> createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateMixin {
+class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
   late TabController _tabController;
+  late PageController _pageController;
   final TextEditingController _searchController = TextEditingController();
   bool _isSearching = false;
   int _currentIndex = 0;
+
+  final List<Widget> _screens = const [
+    SizedBox(),
+    StatisticsScreen(),
+    SettingsScreen(),
+    ProfileScreen(),
+  ];
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _pageController = PageController();
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    _pageController.dispose();
     _searchController.dispose();
     super.dispose();
   }
@@ -43,88 +53,54 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
     });
   }
 
-  void _navigateToScreen(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
-  }
-
-  Widget _buildCurrentScreen() {
-    switch (_currentIndex) {
-      case 0:
-        return _buildHomeScreen();
-      case 1:
-        return const StatisticsScreen();
-      case 2:
-        return const SettingsScreen();
-      case 3:
-        return const ProfileScreen();
-      default:
-        return _buildHomeScreen();
-    }
+  void _navigateTo(int index) {
+    setState(() => _currentIndex = index);
   }
 
   Widget _buildHomeScreen() {
     final provider = Provider.of<TaskProvider>(context);
-    
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
       appBar: AppBar(
-        title: _isSearching 
-          ? TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Buscar tareas...',
-                border: InputBorder.none,
-                hintStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
-              ),
-              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-              onChanged: (value) {
-                provider.setSearchQuery(value);
-              },
-              autofocus: true,
-            )
-          : const Text('Lista de Tareas'),
-        centerTitle: true,
-        elevation: 2,
+        title: _isSearching
+            ? TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  hintText: 'Buscar tareas...',
+                  border: InputBorder.none,
+                  hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+                ),
+                style: TextStyle(color: colorScheme.onSurface),
+                onChanged: (value) => provider.setSearchQuery(value),
+                autofocus: true,
+              )
+            : const Text('Lista de Tareas'),
         actions: [
           IconButton(
             icon: Icon(_isSearching ? Icons.close : Icons.search),
             onPressed: _toggleSearch,
+            tooltip: _isSearching ? 'Cerrar búsqueda' : 'Buscar',
           ),
         ],
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
-            Tab(
-              icon: Icon(Icons.pending_actions),
-              text: 'Pendientes',
-            ),
-            Tab(
-              icon: Icon(Icons.task_alt),
-              text: 'Completadas',
-            ),
+            Tab(icon: Icon(Icons.pending_actions), text: 'Pendientes'),
+            Tab(icon: Icon(Icons.task_alt), text: 'Completadas'),
           ],
-          indicatorSize: TabBarIndicatorSize.tab,
-          indicatorWeight: 3,
         ),
       ),
       body: TabBarView(
         controller: _tabController,
         children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TaskList(
-              tasks: provider.pendingTasks,
-              emptyMessage: 'No hay tareas pendientes',
-            ),
+          TaskList(
+            tasks: provider.pendingTasks,
+            emptyMessage: 'No hay tareas pendientes',
           ),
-          
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TaskList(
-              tasks: provider.completedTasks,
-              emptyMessage: 'No hay tareas completadas',
-            ),
+          TaskList(
+            tasks: provider.completedTasks,
+            emptyMessage: 'No hay tareas completadas',
           ),
         ],
       ),
@@ -134,62 +110,55 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     return Scaffold(
-      body: _buildCurrentScreen(),
+      body: _currentIndex == 0 ? _buildHomeScreen() : _screens[_currentIndex],
       bottomNavigationBar: BottomAppBar(
         color: colorScheme.surfaceContainerHighest,
         shape: const CircularNotchedRectangle(),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: <Widget>[
+          children: [
             IconButton(
+              icon: Icon(Icons.home,
+                  color: _currentIndex == 0 ? colorScheme.primary : null),
+              onPressed: () => _navigateTo(0),
               tooltip: 'Inicio',
-              icon: Icon(
-                Icons.home,
-                color: _currentIndex == 0 ? colorScheme.primary : null,
-              ),
-              onPressed: () => _navigateToScreen(0),
             ),
             IconButton(
+              icon: Icon(Icons.bar_chart,
+                  color: _currentIndex == 1 ? colorScheme.primary : null),
+              onPressed: () => _navigateTo(1),
               tooltip: 'Estadísticas',
-              icon: Icon(
-                Icons.bar_chart,
-                color: _currentIndex == 1 ? colorScheme.primary : null,
-              ),
-              onPressed: () => _navigateToScreen(1),
             ),
             const SizedBox(width: 48),
             IconButton(
+              icon: Icon(Icons.settings,
+                  color: _currentIndex == 2 ? colorScheme.primary : null),
+              onPressed: () => _navigateTo(2),
               tooltip: 'Ajustes',
-              icon: Icon(
-                Icons.settings,
-                color: _currentIndex == 2 ? colorScheme.primary : null,
-              ),
-              onPressed: () => _navigateToScreen(2),
             ),
             IconButton(
+              icon: Icon(Icons.person,
+                  color: _currentIndex == 3 ? colorScheme.primary : null),
+              onPressed: () => _navigateTo(3),
               tooltip: 'Perfil',
-              icon: Icon(
-                Icons.person,
-                color: _currentIndex == 3 ? colorScheme.primary : null,
-              ),
-              onPressed: () => _navigateToScreen(3),
             ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          showDialog(
-            context: context,
-            builder: (context) => const AddTaskDialog(),
-          );
-        },
-        tooltip: 'Agregar Tarea',
-        shape: const CircleBorder(),
-        child: const Icon(Icons.add),
-      ),
+      floatingActionButton: _currentIndex == 0
+          ? FloatingActionButton(
+              tooltip: 'Agregar tarea',
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (_) => const AddTaskDialog(),
+                );
+              },
+              child: const Icon(Icons.add),
+            )
+          : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
