@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../database/DataBaseHelper.dart';
+import '../providers/user_provider.dart';
 import '../providers/task_provider.dart';
 import 'main_screen.dart';
 import 'register_screen.dart';
@@ -67,6 +68,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
     final email = _emailController.text.trim();
     final password = _passwordController.text;
 
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
     final user = await DatabaseHelper.instance.authenticate(email, password);
 
     if (!mounted) return;
@@ -74,7 +76,9 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
     setState(() => _isLoading = false);
 
     if (user != null) {
+      userProvider.setActiveUser(user);
       Provider.of<TaskProvider>(context, listen: false).setActiveUser(user);
+      userProvider.addUserToSharedPreferences(user);
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const MainScreen()));
     } else {
       ScaffoldMessenger.of(context).showSnackBar(

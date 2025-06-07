@@ -117,4 +117,13 @@ class DatabaseHelper {
     final result = await db.query(userTable);
     return result.map((map) => User.fromMap(map)).toList();
   }
+
+  Future<User?> getUserById(String id) async {
+    final db = await database;
+    final result = await db.query(userTable, where: 'id = ?', whereArgs: [id]);
+    if (result.isNotEmpty) {
+      return User.fromMap(result.first);
+    }
+    return null;
+  }
 }

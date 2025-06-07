@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/task_provider.dart';
-import '../database/DataBaseHelper.dart';
+import '../providers/user_provider.dart';
 import '../models/user.dart';
 import 'login_screen.dart';
 
@@ -11,7 +11,8 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final user = Provider.of<TaskProvider>(context).activeUser;
+    final userProvider = Provider.of<UserProvider>(context);
+    final user = userProvider.activeUser;
 
     if (user == null) {
       return const Scaffold(
@@ -84,23 +85,42 @@ class ProfileScreen extends StatelessWidget {
                   title: const Text('Cambiar de usuario'),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                   onTap: () async {
-                    final users = await DatabaseHelper.instance.getAllUsers();
+                    await userProvider.loadUsersFromPrefs();
                     if (!context.mounted) return;
                     showDialog(
                       context: context,
                       builder: (context) {
                         return SimpleDialog(
                           title: const Text('Seleccionar usuario'),
-                          children: users.map((u) {
-                            return SimpleDialogOption(
+                          children: [
+                            ...userProvider.users.map((u) {
+                              return SimpleDialogOption(
+                                onPressed: () {
+                                  userProvider.setActiveUser(u);
+                                  Provider.of<TaskProvider>(context, listen: false).setActiveUser(u);
+                                  Navigator.pop(context);
+                                },
+                                child: Text(u.email),
+                              );
+                            }).toList(),
+                            const Divider(),
+                            SimpleDialogOption(
                               onPressed: () {
-                                Provider.of<TaskProvider>(context, listen: false)
-                                    .setActiveUser(u);
                                 Navigator.pop(context);
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                                );
                               },
-                              child: Text(u.email),
-                            );
-                          }).toList(),
+                              child: Row(
+                                children: const [
+                                  Icon(Icons.add, size: 20),
+                                  SizedBox(width: 8),
+                                  Text('Añadir cuenta'),
+                                ],
+                              ),
+                            ),
+                          ],
                         );
                       },
                     );
@@ -112,7 +132,8 @@ class ProfileScreen extends StatelessWidget {
                   title: Text('Cerrar sesión', style: TextStyle(color: colorScheme.error)),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                   onTap: () {
-                    Provider.of<TaskProvider>(context, listen: false).setActiveUser(null);
+                    userProvider.setActiveUser(null);
+                    userProvider.removeUserFromSharedPreferences(user.id);
                     Navigator.pushAndRemoveUntil(
                       context,
                       MaterialPageRoute(builder: (_) => const LoginScreen()),

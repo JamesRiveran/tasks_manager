@@ -8,6 +8,7 @@ import 'screens/login_screen.dart';
 import 'theme/app_theme.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart' as path;
+import 'providers/user_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,20 +30,17 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   Timer? _themeTimer;
+  bool _didInitTheme = false;
 
-  @override
-  void initState() {
-    super.initState();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final themeProvider = Provider.of<tp.ThemeProvider>(context, listen: false);
-      themeProvider.checkTimeBasedTheme();
-
-      _themeTimer = Timer.periodic(const Duration(minutes: 1), (_) {
-        if (mounted) {
-          themeProvider.checkTimeBasedTheme();
-        }
-      });
+  void _initTheme(BuildContext context) {
+    if (_didInitTheme) return;
+    _didInitTheme = true;
+    final themeProvider = Provider.of<tp.ThemeProvider>(context, listen: false);
+    themeProvider.checkTimeBasedTheme();
+    _themeTimer = Timer.periodic(const Duration(minutes: 1), (_) {
+      if (mounted) {
+        themeProvider.checkTimeBasedTheme();
+      }
     });
   }
 
@@ -58,16 +56,22 @@ class _MyAppState extends State<MyApp> {
       providers: [
         ChangeNotifierProvider(create: (_) => TaskProvider()),
         ChangeNotifierProvider(create: (_) => tp.ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => UserProvider()),
       ],
-      child: Consumer<tp.ThemeProvider>(
-        builder: (context, themeProvider, _) {
-          return MaterialApp(
-            title: 'Tareas',
-            debugShowCheckedModeBanner: false,
-            theme: AppTheme.lightTheme(),
-            darkTheme: AppTheme.darkTheme(),
-            themeMode: themeProvider.isDark ? ThemeMode.dark : ThemeMode.light,
-            home: const LoginScreen(),
+      child: Builder(
+        builder: (context) {
+          _initTheme(context);
+          return Consumer<tp.ThemeProvider>(
+            builder: (context, themeProvider, _) {
+              return MaterialApp(
+                title: 'Tareas',
+                debugShowCheckedModeBanner: false,
+                theme: AppTheme.lightTheme(),
+                darkTheme: AppTheme.darkTheme(),
+                themeMode: themeProvider.isDark ? ThemeMode.dark : ThemeMode.light,
+                home: const LoginScreen(),
+              );
+            },
           );
         },
       ),
